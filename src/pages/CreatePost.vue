@@ -139,5 +139,7 @@ button:hover:enabled {
     padding-right: 1rem;
   }
 }
-
+  button{
+    width: 100%;
+  }
 </style>

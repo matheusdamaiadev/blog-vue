@@ -112,7 +112,7 @@ export default {
     background: #f5f5f5;
     flex-direction: column;
     align-items: flex-start;
-    padding: 1rem;
+  padding: 1rem;
     gap: 1rem;
     border-bottom: 1px solid #ddd;
     display: none;
@@ -121,20 +121,20 @@ export default {
   .links.open {
     display: flex;
   }
-.login-btn {
-  width: calc(100% - 2rem);
-  margin: 0 auto;
+  .login-btn {
+  width: 100%;
   text-align: center;
+  padding: 0.7rem 0;
+  box-sizing: border-box;
 }
+
 .links a {
   width: 100%;
-  padding: 0.75rem 0.5rem;
+  padding: 0.75rem 0rem;
   display: block;
 }
 
-.links a:hover {
-  background-color: #eaeaea;
-}
+
 
 }
 </style>
