@@ -133,4 +133,11 @@ button:hover:enabled {
   text-align: center;
   margin-top: 1rem;
 }
+@media (max-width: 700px) {
+  .create-post {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 </style>
