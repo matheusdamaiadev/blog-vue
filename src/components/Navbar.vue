@@ -126,6 +126,15 @@ export default {
   margin: 0 auto;
   text-align: center;
 }
+.links a {
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  display: block;
+}
+
+.links a:hover {
+  background-color: #eaeaea;
+}
 
 }
 </style>
