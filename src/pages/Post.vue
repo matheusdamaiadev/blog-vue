@@ -1,14 +1,17 @@
 <template>
   <div class="post-page">
-
     <div class="post-container" v-if="post">
       <h1>{{ post.title }}</h1>
-      <!-- Data sem os segundos -->
-      <p class="date">{{ new Date(post.created_at).toLocaleString('pt-BR', { 
-        day: '2-digit', month: '2-digit', year: 'numeric', 
-        hour: '2-digit', minute: '2-digit' 
-      }) }}</p>
-      <div class="content">{{ post.content }}</div>
+
+      <p class="date">{{ formattedDate }}</p>
+
+      <div class="content">
+        {{ post.content }}
+      </div>
+
+      <button class="delete-btn" @click="deletePost">
+        Excluir Post
+      </button>
     </div>
 
     <p v-else class="loading">Carregando...</p>
@@ -16,15 +19,14 @@
 </template>
 
 <script>
-import Navbar from '../components/Navbar.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../services/supabase.js'
-import { useRoute } from 'vue-router'
 
 export default {
-  components: { Navbar },
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const post = ref(null)
 
     const fetchPost = async () => {
@@ -38,40 +40,125 @@ export default {
     }
 
     onMounted(fetchPost)
-    return { post }
+
+    const formattedDate = computed(() => {
+      if (!post.value) return ''
+      return new Date(post.value.created_at).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    })
+
+    const deletePost = async () => {
+      const confirmDelete = confirm('Deseja realmente excluir este post?')
+      if (!confirmDelete) return
+
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', post.value.id)
+
+      if (!error) {
+        router.push('/')
+      } else {
+        alert('Erro ao excluir post')
+      }
+    }
+
+    return { post, formattedDate, deletePost }
   }
 }
 </script>
 
 <style scoped>
 .post-page {
-  max-width: 700px;
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: sans-serif;
+  max-width: 760px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* bloco principal */
+.post-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+
+  background: #fafafa;
+  padding: 2.5rem 2.2rem;
+  border-radius: 14px;
+}
+
+/* título */
 .post-container h1 {
-  margin-bottom: 0.5rem;
   text-align: center;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
 }
 
+/* data */
 .date {
   text-align: center;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 0.4px;
 }
 
+/* conteúdo */
 .content {
-  line-height: 1.6;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #222;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  padding-top: 1.5rem;
+  border-top: 1px solid #e6e6e6;
 }
 
+/* botão excluir */
+.delete-btn {
+  align-self: center;
+  margin-top: 1.5rem;
+
+  padding: 0.55rem 1.3rem;
+  border-radius: 6px;
+  border: none;
+
+  background: #ff3b3b;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  transition: background 0.3s ease;
+}
+
+.delete-btn:hover {
+  background: #e03131;
+}
+
+/* loading */
 .loading {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 3rem;
+  color: #666;
+}
+
+/* mobile */
+@media (max-width: 600px) {
+  .post-container {
+    padding: 1.8rem 1.4rem;
+  }
+
+  .post-container h1 {
+    font-size: 1.6rem;
+  }
 }
 </style>

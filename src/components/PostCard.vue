@@ -22,17 +22,24 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
 .post-card {
   border: 1px solid #ddd;
   padding: 1rem;
   border-radius: 5px;
-  transition: 0.5s;
   background-color: #fff;
   text-decoration: none;
+  transition: all 0.5s ease-in-out;
 }
 
+/* Hover com sombra e leve elevação */
 .post-card:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+ 
+  h2{
+    text-decoration: underline;
+    
+  }
 }
 
 /* Título truncado com reticências */

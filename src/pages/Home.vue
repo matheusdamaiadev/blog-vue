@@ -1,13 +1,15 @@
 <template>
   <div class="home">
 
-    <h1>Blog</h1>
+    <h1>Posts</h1>
 
+    <!-- Filtro -->
     <div class="filter">
       <button @click="order = 'desc'" :class="{ active: order === 'desc' }">Mais recente</button>
       <button @click="order = 'asc'" :class="{ active: order === 'asc' }">Mais antigo</button>
     </div>
 
+    <!-- Lista de posts -->
     <div class="posts">
       <PostCard 
         v-for="post in posts" 
@@ -16,32 +18,41 @@
       />
     </div>
 
+    <!-- Mensagem caso não haja posts -->
     <p v-if="posts.length === 0" class="empty">Nenhum post disponível.</p>
+
   </div>
 </template>
 
 <script>
-import Navbar from '../components/Navbar.vue'
 import PostCard from '../components/PostCard.vue'
 import { supabase } from '../services/supabase.js'
 import { ref, onMounted, watch } from 'vue'
 
 export default {
-  components: { Navbar, PostCard },
+  components: { PostCard },
   setup() {
     const posts = ref([])
     const order = ref('desc')
 
+    // Função para buscar posts
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
         .select('*')
         .order('created_at', { ascending: order.value === 'asc' })
-
-      if (!error) posts.value = data
+      
+      if (!error) {
+        posts.value = data
+      } else {
+        console.error('Erro ao buscar posts:', error)
+      }
     }
 
+    // Executa ao montar o componente
     onMounted(fetchPosts)
+
+    // Reexecuta ao mudar o filtro
     watch(order, fetchPosts)
 
     return { posts, order }
@@ -59,7 +70,7 @@ export default {
 
 h1 {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .filter {
@@ -75,6 +86,7 @@ h1 {
   background: none;
   cursor: pointer;
   border-radius: 5px;
+  transition: all 0.3s ease;
 }
 
 .filter button.active {
@@ -84,6 +96,7 @@ h1 {
 
 .posts {
   display: grid;
+  margin-top: 2rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
 }
@@ -91,5 +104,6 @@ h1 {
 .empty {
   text-align: center;
   margin-top: 2rem;
+  color: #666;
 }
 </style>
