@@ -1,90 +1,131 @@
 <template>
   <nav class="navbar">
-    <div class="left">
-      <router-link to="/" class="site-name">The Blog</router-link>
-    </div>
+    <!-- Logo -->
+    <router-link to="/" class="site-name">The Blog</router-link>
 
-    <div class="center">
-      <router-link to="/">Home</router-link>
-      <router-link to="/create">Criar Post</router-link>
-    </div>
+    <!-- Botão hamburguer (mobile) -->
+    <button class="hamburger" @click="toggleMenu">
+      <span :class="{ active: menuOpen }"></span>
+      <span :class="{ active: menuOpen }"></span>
+      <span :class="{ active: menuOpen }"></span>
+    </button>
 
-    <div class="right">
-      <router-link to="/login" class="login-btn">Login</router-link>
+    <!-- Links -->
+    <div class="links" :class="{ open: menuOpen }">
+      <router-link to="/" @click="closeMenu">Home</router-link>
+      <router-link to="/create" @click="closeMenu">Criar Post</router-link>
+      <router-link to="/login" class="login-btn" @click="closeMenu">
+        Login
+      </router-link>
     </div>
   </nav>
 </template>
 
 <script>
-export default {}
+export default {
+  data() {
+    return {
+      menuOpen: false
+    }
+  },
+  methods: {
+    toggleMenu() {
+      this.menuOpen = !this.menuOpen
+    },
+    closeMenu() {
+      this.menuOpen = false
+    }
+  }
+}
 </script>
 
 <style scoped>
+/* Navbar */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
   background-color: #f5f5f5;
   border-bottom: 1px solid #ddd;
   font-family: sans-serif;
+  position: relative;
 }
 
-/* Nome do site */
+/* Logo */
 .site-name {
   font-weight: 700;
   font-size: 1.2rem;
-  color: #333;
+  color: #000;
   text-decoration: none;
 }
 
-/* Central links */
-.center {
+/* Links desktop */
+.links {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
 }
 
-.center a {
+.links a {
   text-decoration: none;
   color: #333;
   font-weight: 500;
 }
 
-.center a:hover {
-  color: #000;
-  text-decoration: underline;
-}
-
-/* Login botão à direita */
-.right .login-btn {
+/* Login */
+.login-btn {
   background-color: #000;
-  color: #fff;
-  padding: 0.5rem 1rem;
+  color: #fff !important;
+  padding: 0.45rem 0.9rem;
   border-radius: 5px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease-in-out;
 }
 
-.right .login-btn:hover {
-  background-color: #333;
-  color: #fff;
+/* HAMBURGUER */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
-/* Responsivo: empilha em telas pequenas */
-@media (max-width: 600px) {
-  .navbar {
+.hamburger span {
+  width: 24px;
+  height: 2px;
+  background: #000;
+  transition: 0.3s;
+}
+
+/* MOBILE */
+@media (max-width: 700px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #f5f5f5;
     flex-direction: column;
-    gap: 0.5rem;
     align-items: flex-start;
+    padding: 1rem;
+    gap: 1rem;
+    border-bottom: 1px solid #ddd;
+    display: none;
   }
 
-  .center {
-    justify-content: flex-start;
+  .links.open {
+    display: flex;
   }
+.login-btn {
+  width: calc(100% - 2rem);
+  margin: 0 auto;
+  text-align: center;
+}
 
-  .right {
-    align-self: flex-end;
-  }
 }
 </style>
