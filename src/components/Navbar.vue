@@ -1,10 +1,12 @@
 <template>
   <nav class="navbar">
     <!-- Logo -->
-    <router-link to="/" class="site-name">The Blog</router-link>
+    <router-link to="/" class="site-name">
+      The Blog
+    </router-link>
 
-    <!-- Botão hamburguer (mobile) -->
-    <button class="hamburger" @click="toggleMenu">
+    <!-- Botão hamburguer -->
+    <button class="hamburger" @click="toggleMenu" aria-label="Menu">
       <span></span>
       <span></span>
       <span></span>
@@ -12,11 +14,14 @@
 
     <!-- Links -->
     <div class="links" :class="{ open: menuOpen }">
-      <router-link to="/" @click="closeMenu">Home</router-link>
+      <router-link to="/" class="nav-item" @click="closeMenu">
+        Home
+      </router-link>
 
       <router-link
         v-if="user"
         to="/create"
+        class="nav-item"
         @click="closeMenu"
       >
         Criar Post
@@ -26,7 +31,7 @@
       <router-link
         v-if="!user"
         to="/login"
-        class="login-btn"
+        class="nav-item login-btn"
         @click="closeMenu"
       >
         Login
@@ -37,13 +42,13 @@
         <router-link
           v-if="profile"
           :to="`/perfil/${profile.username}`"
-          class="profile-link"
+          class="nav-item"
           @click="closeMenu"
         >
           {{ profile.username }}
         </router-link>
 
-        <button class="logout-btn" @click="logout">
+        <button class="nav-item logout-btn" @click="logout">
           Sair
         </button>
       </div>
@@ -130,65 +135,78 @@ export default {
   font-size: 1.25rem;
   color: #111;
   text-decoration: none;
+  line-height: 1;
 }
 
-/* ===== LINKS DESKTOP ===== */
+/* ===== LINKS ===== */
 .links {
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 0.75rem;
 }
 
-.links a {
+/* ===== ITEM PADRÃO (BASE DE TUDO) ===== */
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+
+  font-weight: 500;
+  font-size: 0.95rem;
   text-decoration: none;
   color: #333;
-  font-weight: 500;
-  transition: color 0.2s ease;
+
+  white-space: nowrap;
+  line-height: 1;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
-.links a:hover {
-  color: #000;
+.nav-item:hover {
+  background: #eaeaea;
 }
 
-/* Login */
+/* ===== LOGIN ===== */
 .login-btn {
   background: #111;
   color: #fff !important;
-  padding: 0.45rem 1rem;
-  border-radius: 6px;
-  transition: background 0.2s ease;
 }
 
 .login-btn:hover {
   background: #000;
 }
 
-/* ===== USUÁRIO LOGADO ===== */
+/* ===== USUÁRIO ===== */
 .user-area {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
-.profile-link {
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  transition: background 0.2s ease;
-}
-
-.profile-link:hover {
-  background: #eaeaea;
-}
-
-/* Botão sair */
+/* ===== LOGOUT (RESET TOTAL DO BUTTON) ===== */
 .logout-btn {
-  padding: 0.35rem 0.7rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  all: unset; /* 🔥 remove estilo nativo do button */
+  box-sizing: border-box;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+
+  border: 1px solid #686868;
   background: #fff;
+  color: #686868;
+
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
@@ -197,7 +215,7 @@ export default {
   color: #b00000;
 }
 
-/* ===== HAMBURGUER ===== */
+/* ===== HAMBURGER ===== */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -211,6 +229,7 @@ export default {
   width: 24px;
   height: 2px;
   background: #111;
+  border-radius: 2px;
 }
 
 /* ===== MOBILE ===== */
@@ -226,7 +245,6 @@ export default {
     right: 0;
     background: #f7f7f7;
     flex-direction: column;
-    align-items: stretch;
     padding: 1rem;
     gap: 0.6rem;
     border-bottom: 1px solid #e3e3e3;
@@ -237,18 +255,17 @@ export default {
     display: flex;
   }
 
-  .links a,
-  .login-btn,
-  .profile-link,
+  .nav-item,
   .logout-btn {
     width: 100%;
-    text-align: center;
-    padding: 0.75rem 0;
+    height: 42px;
+    justify-content: center;
   }
 
   .user-area {
+    width: 100%;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 }
 </style>

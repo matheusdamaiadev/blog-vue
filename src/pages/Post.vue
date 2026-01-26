@@ -16,15 +16,6 @@
       <div class="content">
         {{ post.content }}
       </div>
-
-      <!-- Só aparece se for o autor -->
-      <button
-        v-if="user && user.id === post.author_id"
-        class="delete-btn"
-        @click="deletePost"
-      >
-        Excluir Post
-      </button>
     </div>
 
     <p v-else class="loading">Carregando...</p>
@@ -33,16 +24,13 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { supabase } from '../services/supabase.js'
 
 export default {
   setup() {
     const route = useRoute()
-    const router = useRouter()
-
     const post = ref(null)
-    const user = ref(null)
 
     const fetchPost = async () => {
       const { data, error } = await supabase
@@ -52,7 +40,6 @@ export default {
           title,
           content,
           created_at,
-          author_id,
           profiles (
             username
           )
@@ -60,18 +47,15 @@ export default {
         .eq('id', route.params.id)
         .single()
 
-      if (!error) post.value = data
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      post.value = data
     }
 
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      user.value = data.user
-    }
-
-    onMounted(() => {
-      fetchUser()
-      fetchPost()
-    })
+    onMounted(fetchPost)
 
     const formattedDate = computed(() => {
       if (!post.value) return ''
@@ -84,29 +68,12 @@ export default {
       })
     })
 
-    const deletePost = async () => {
-      const confirmDelete = confirm('Deseja realmente excluir este post?')
-      if (!confirmDelete) return
-
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.value.id)
-
-      if (!error) {
-        router.push('/')
-      } else {
-        alert('Erro ao excluir post')
-      }
-    }
-
-    return { post, user, formattedDate, deletePost }
+    return { post, formattedDate }
   }
 }
 </script>
-
-<style scoped>
-.post-page {
+<style>
+  .post-page {
   max-width: 760px;
   margin: 3rem auto;
   padding: 0 1rem;
@@ -122,6 +89,7 @@ export default {
   border-radius: 14px;
 }
 
+/* título */
 .post-container h1 {
   text-align: center;
   font-size: 1.9rem;
@@ -142,12 +110,14 @@ export default {
   text-decoration: underline;
 }
 
+/* data */
 .date {
   text-align: center;
   font-size: 0.8rem;
   color: #888;
 }
 
+/* conteúdo */
 .content {
   font-size: 1.05rem;
   line-height: 1.9;
@@ -157,6 +127,7 @@ export default {
   border-top: 1px solid #e6e6e6;
 }
 
+/* botão excluir */
 .delete-btn {
   align-self: center;
   margin-top: 1.5rem;
@@ -167,18 +138,21 @@ export default {
   color: #fff;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .delete-btn:hover {
   background: #e03131;
 }
 
+/* loading */
 .loading {
   text-align: center;
   margin-top: 3rem;
   color: #666;
 }
 
+/* responsivo */
 @media (max-width: 600px) {
   .post-container {
     padding: 1.8rem 1.4rem;
@@ -188,4 +162,5 @@ export default {
     font-size: 1.6rem;
   }
 }
+
 </style>

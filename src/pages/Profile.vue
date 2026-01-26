@@ -113,18 +113,25 @@ export default {
       isOwnProfile.value = data.id === ownUserId.value
     }
 
-    const fetchPosts = async () => {
-      if (!profile.value.id) return
+        const fetchPosts = async () => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(`
+      id,
+      title,
+      created_at,
+      profiles (
+        username
+      )
+    `)
+    .order('created_at', { ascending: order.value === 'asc' })
 
-      const { data } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('author_id', profile.value.id)
-        .order('created_at', { ascending: order.value === 'asc' })
-
-      posts.value = data || []
-    }
-
+  if (!error) {
+    posts.value = data
+  } else {
+    console.error(error)
+  }
+}
     const enableEdit = () => {
       editing.value = true
       error.value = ''
@@ -286,6 +293,7 @@ export default {
   border: 1px solid #222;
   background: transparent;
   cursor: pointer;
+  color: #222;
 }
 
 .filter button.active {
