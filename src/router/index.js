@@ -6,10 +6,35 @@ import CreatePost from '../pages/CreatePost.vue'
 import Login from '../pages/Login.vue'
 
 const routes = [
-  { path: '/', component: Home },
-  { path: '/post/:id', component: Post },
-  { path: '/create', component: CreatePost },
-  { path: '/login', component: Login },
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+
+  {
+    path: '/post/:id',
+    name: 'Post',
+    component: Post
+  },
+
+  {
+    path: '/create',
+    name: 'CreatePost',
+    component: CreatePost
+  },
+
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+
+  {
+    path: '/perfil/:username',
+    name: 'Profile',
+    component: () => import('../pages/Profile.vue')
+  }
 ]
 
 const router = createRouter({

@@ -1,69 +1,92 @@
 <template>
   <div class="create-post">
-
     <h1>Criar Post</h1>
 
-    <form @submit.prevent="submitPost">
-      <div class="form-group">
-        <label for="title">Título</label>
-        <input type="text" id="title" v-model="title" placeholder="Digite o título" required />
-      </div>
+    <!-- NÃO LOGADO -->
+    <p v-if="!user">
+      Você precisa estar logado para criar um post.
+    </p>
 
-      <div class="form-group">
-        <label for="content">Conteúdo</label>
-        <textarea id="content" v-model="content" placeholder="Digite o conteúdo do post" required></textarea>
-      </div>
+    <!-- LOGADO -->
+    <form v-else @submit.prevent="createPost">
+      <input
+        v-model="title"
+        type="text"
+        placeholder="Título do post"
+        required
+      />
+
+      <textarea
+        v-model="content"
+        placeholder="Conteúdo do post"
+        required
+      ></textarea>
 
       <button type="submit" :disabled="loading">
-        {{ loading ? 'Postando...' : 'Postar' }}
+        {{ loading ? 'Publicando...' : 'Publicar' }}
       </button>
-    </form>
 
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="success" class="success">{{ success }}</p>
+      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="success" class="success">Post criado com sucesso!</p>
+    </form>
   </div>
 </template>
-
 <script>
-import Navbar from '../components/Navbar.vue'
-import { ref } from 'vue'
-import { supabase } from '../services/supabase.js'
+import { supabase } from '../services/supabase'
 
 export default {
-  components: { Navbar },
-  setup() {
-    const title = ref('')
-    const content = ref('')
-    const loading = ref(false)
-    const error = ref('')
-    const success = ref('')
+  data() {
+    return {
+      user: null,
+      title: '',
+      content: '',
+      loading: false,
+      error: null,
+      success: false
+    }
+  },
 
-    const submitPost = async () => {
-      if (!title.value || !content.value) return
+  async mounted() {
+    const { data } = await supabase.auth.getUser()
+    this.user = data.user
 
-      loading.value = true
-      error.value = ''
-      success.value = ''
+    supabase.auth.onAuthStateChange((_event, session) => {
+      this.user = session?.user || null
+    })
+  },
 
-      const { data, error: supabaseError } = await supabase
+  methods: {
+    async createPost() {
+      if (!this.user) return
+
+      this.loading = true
+      this.error = null
+
+      const { data, error } = await supabase
         .from('posts')
-        .insert([{ title: title.value, content: content.value }])
+        .insert([
+          {
+            title: this.title,
+            content: this.content,
+            author_id: this.user.id
+          }
+        ])
+        .select()
+        .single()
 
-      loading.value = false
+      this.loading = false
 
-      if (supabaseError) {
-        error.value = 'Erro ao criar post: ' + supabaseError.message
+      if (error) {
+        this.error = error.message
       } else {
-        success.value = 'Post criado com sucesso!'
-        title.value = ''
-        content.value = ''
+        // 👉 vai direto pro post criado
+        this.$router.push(`/post/${data.id}`)
       }
     }
-
-    return { title, content, loading, error, success, submitPost }
   }
 }
 </script>
+
 
 <style scoped>
 .create-post {
@@ -72,45 +95,19 @@ export default {
   font-family: sans-serif;
 }
 
-.create-post h1 {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
+input,
 textarea {
-  min-height: 100px;
-  resize: vertical;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.6rem;
 }
 
 button {
-  padding: 0.5rem 1rem;
-  background-color: #333;
-  color: white;
+  padding: 0.6rem 1.2rem;
+  background: #222;
+  color: #fff;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  display: block;
-  margin: 1rem auto 0;
-  font-size: 1rem;
 }
 
 button:disabled {
@@ -118,28 +115,13 @@ button:disabled {
   cursor: not-allowed;
 }
 
-button:hover:enabled {
-  background-color: #000;
-}
-
 .error {
   color: red;
-  text-align: center;
   margin-top: 1rem;
 }
 
 .success {
   color: green;
-  text-align: center;
   margin-top: 1rem;
 }
-@media (max-width: 700px) {
-  .create-post {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-}
-  button{
-    width: 100%;
-  }
 </style>
