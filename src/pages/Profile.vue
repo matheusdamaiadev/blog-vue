@@ -5,15 +5,9 @@
       <h1>@{{ profile.username }}</h1>
       <p class="email">{{ profile.email }}</p>
 
-      <p class="counter">
-        {{ posts.length }} post{{ posts.length !== 1 ? 's' : '' }}
-      </p>
+      <p class="counter">{{ posts.length }} post{{ posts.length !== 1 ? "s" : "" }}</p>
 
-      <button
-        v-if="isOwnProfile && !editing"
-        class="edit-btn"
-        @click="enableEdit"
-      >
+      <button v-if="isOwnProfile && !editing" class="edit-btn" @click="enableEdit">
         Editar perfil
       </button>
     </section>
@@ -30,7 +24,7 @@
 
       <div class="actions">
         <button class="save-btn" @click="saveUsername" :disabled="loading">
-          {{ loading ? 'Salvando...' : 'Salvar' }}
+          {{ loading ? "Salvando..." : "Salvar" }}
         </button>
 
         <button class="cancel-btn" @click="cancelEdit" :disabled="loading">
@@ -44,131 +38,148 @@
 
     <!-- Filtro -->
     <section class="filter" v-if="posts.length">
-      <button
-        @click="order = 'desc'"
-        :class="{ active: order === 'desc' }"
-      >
+      <button @click="order = 'desc'" :class="{ active: order === 'desc' }">
         Mais recentes
       </button>
-      <button
-        @click="order = 'asc'"
-        :class="{ active: order === 'asc' }"
-      >
+      <button @click="order = 'asc'" :class="{ active: order === 'asc' }">
         Mais antigos
       </button>
     </section>
 
     <!-- Posts -->
     <section class="posts">
-      <PostCard
-        v-for="post in posts"
-        :key="post.id"
-        :post="post"
-      />
+      <PostCard v-for="post in posts" :key="post.id" :post="post" />
     </section>
 
-    <p v-if="posts.length === 0" class="empty">
-      Nenhum post ainda 😢
-    </p>
+    <p v-if="posts.length === 0" class="empty">Nenhum post ainda 😢</p>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { supabase } from '../services/supabase'
-import PostCard from '../components/PostCard.vue'
+import { ref, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import { supabase } from "../services/supabase";
+import PostCard from "../components/PostCard.vue";
 
 export default {
   components: { PostCard },
   setup() {
-    const route = useRoute()
-    const profile = ref({})
-    const posts = ref([])
-    const order = ref('desc')
+    const route = useRoute();
 
-    const editing = ref(false)
-    const newUsername = ref('')
-    const loading = ref(false)
-    const error = ref('')
-    const success = ref('')
+    const profile = ref({});
+    const posts = ref([]);
+    const order = ref("desc");
 
-    const ownUserId = ref(null)
-    const isOwnProfile = ref(false)
+    const editing = ref(false);
+    const newUsername = ref("");
+    const loading = ref(false);
+    const error = ref("");
+    const success = ref("");
 
+    const ownUserId = ref(null);
+    const isOwnProfile = ref(false);
+
+    /* =========================
+       Usuário logado
+    ========================= */
     const fetchCurrentUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      ownUserId.value = data.user.id
-    }
+      const { data } = await supabase.auth.getUser();
+      ownUserId.value = data.user?.id || null;
+    };
 
+    /* =========================
+       Perfil
+    ========================= */
     const fetchProfile = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('username', route.params.username)
-        .single()
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("username", route.params.username)
+        .single();
 
-      profile.value = data
-      newUsername.value = data.username
-      isOwnProfile.value = data.id === ownUserId.value
-    }
+      if (error) {
+        console.error(error);
+        return;
+      }
 
-        const fetchPosts = async () => {
-  const { data, error } = await supabase
-    .from('posts')
-    .select(`
-      id,
-      title,
-      created_at,
-      profiles (
-        username
-      )
-    `)
-    .order('created_at', { ascending: order.value === 'asc' })
+      profile.value = data;
+      newUsername.value = data.username;
+      isOwnProfile.value = data.id === ownUserId.value;
+    };
 
-  if (!error) {
-    posts.value = data
-  } else {
-    console.error(error)
-  }
-}
+    /* =========================
+       Posts do usuário (CORRIGIDO)
+    ========================= */
+    const fetchPosts = async () => {
+      if (!profile.value.id) return;
+
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
+          `
+          id,
+          title,
+          created_at,
+          profiles (
+            username
+          )
+        `
+        )
+        .eq("author_id", profile.value.id)
+        .order("created_at", { ascending: order.value === "asc" });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      posts.value = data;
+    };
+
+    /* =========================
+       Edição de perfil
+    ========================= */
     const enableEdit = () => {
-      editing.value = true
-      error.value = ''
-      success.value = ''
-    }
+      editing.value = true;
+      error.value = "";
+      success.value = "";
+    };
 
     const cancelEdit = () => {
-      editing.value = false
-      newUsername.value = profile.value.username
-    }
+      editing.value = false;
+      newUsername.value = profile.value.username;
+    };
 
     const saveUsername = async () => {
-      loading.value = true
+      loading.value = true;
 
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ username: newUsername.value })
-        .eq('id', profile.value.id)
+        .eq("id", profile.value.id);
 
-      loading.value = false
+      loading.value = false;
 
-      if (!updateError) {
-        profile.value.username = newUsername.value
-        editing.value = false
-        success.value = 'Username atualizado!'
-      } else {
-        error.value = updateError.message
+      if (updateError) {
+        error.value = updateError.message;
+        return;
       }
-    }
 
+      profile.value.username = newUsername.value;
+      editing.value = false;
+      success.value = "Username atualizado!";
+    };
+
+    /* =========================
+       Lifecycle
+    ========================= */
     onMounted(async () => {
-      await fetchCurrentUser()
-      await fetchProfile()
-      await fetchPosts()
-    })
+      await fetchCurrentUser();
+      await fetchProfile();
+      await fetchPosts();
+    });
 
-    watch(order, fetchPosts)
+    watch(order, fetchPosts);
 
     return {
       profile,
@@ -182,10 +193,10 @@ export default {
       loading,
       error,
       success,
-      isOwnProfile
-    }
-  }
-}
+      isOwnProfile,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -196,7 +207,6 @@ export default {
   font-family: system-ui, sans-serif;
 }
 
-/* Header */
 .profile-header {
   text-align: center;
   margin-bottom: 2.5rem;
@@ -218,7 +228,6 @@ export default {
   color: #444;
 }
 
-/* Botões */
 .edit-btn,
 .save-btn,
 .cancel-btn {
@@ -241,7 +250,6 @@ export default {
   background: #000;
 }
 
-/* Form */
 .edit-form {
   max-width: 420px;
   margin: 0 auto 2rem;
@@ -279,7 +287,6 @@ export default {
   background: #aaa;
 }
 
-/* Filtro */
 .filter {
   display: flex;
   justify-content: center;
@@ -301,7 +308,6 @@ export default {
   color: #fff;
 }
 
-/* Posts */
 .posts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -314,7 +320,6 @@ export default {
   color: #666;
 }
 
-/* Feedback */
 .error {
   color: #d00;
   text-align: center;
@@ -325,7 +330,6 @@ export default {
   text-align: center;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .profile-header h1 {
     font-size: 1.6rem;
